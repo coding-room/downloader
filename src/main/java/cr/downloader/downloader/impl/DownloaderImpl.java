@@ -59,6 +59,7 @@ public class DownloaderImpl implements Downloader {
             while (task.isRunning() && (length = in.read(buffer)) != -1) {
                 downloadSize += length;
                 randomAccessFile.write(buffer, 0, length);
+                task.appendFinish(length);
                 callback.downloadProcess(totalSize, length);
             }
 
