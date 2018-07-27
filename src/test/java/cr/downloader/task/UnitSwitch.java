@@ -22,18 +22,7 @@ public class UnitSwitch {
         return result;
     }
 
-    /**
-     * @author gaoqiang
-     *         <p>
-     *         计算网络速率
-     *         <p>
-     *         返回的格式 Kb/s
-     * @param delta
-     *            ： 传入一个Bytes数据
-     * @param duration_time
-     *            ： 下载delta数据所需要用的时间
-     * @return
-     */
+
     public static String calculateSpeed(long delta, long duration_time) {
         DecimalFormat fnum = new DecimalFormat("##0.0");
         String speedStr;

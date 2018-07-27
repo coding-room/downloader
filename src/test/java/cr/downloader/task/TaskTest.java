@@ -35,6 +35,7 @@ public class TaskTest {
 
     @Test
     public void download() throws Exception {
+        downLoadSize.set(0);
         if (!root.exists()) {
             root.mkdirs();
         }
@@ -63,7 +64,10 @@ public class TaskTest {
             SimpleRangeTask task = new SimpleRangeTask(url, target, start, end, taskExecutor);
             task.setTotal(end - start);
             task.start((total, finished) -> {
-                downLoadSize.getAndAdd(finished);
+                if (finished > total) {
+                    System.out.println("error:" + total + "-" + finished);
+                }
+                downLoadSize.addAndGet(finished);
             });
 
         }
@@ -85,6 +89,7 @@ public class TaskTest {
                 }
             }
             System.out.println("finish........");
+            System.out.println(fileLength + ":::::" + downLoadSize.get());
         }, "calc").start();
         TimeUnit.SECONDS.sleep(10000);
 
