@@ -2,21 +2,19 @@ package cr.downloader.downloader.impl;
 
 import cr.downloader.downloader.DownloadCallback;
 import cr.downloader.downloader.Downloader;
-import cr.downloader.downloader.task.InnerDownloadTask;
-import cr.downloader.downloader.task.RangeDownloadTask;
-import cr.downloader.downloader.task.SimpleDownloadTask;
-import cr.downloader.http.DownloadFile;
-import cr.downloader.http.DownloadFileFetcher;
+import cr.downloader.task.RangeTask;
+import cr.downloader.task.Task;
+import cr.downloader.task.TaskStatus;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author beldon
@@ -25,43 +23,32 @@ import java.net.URLConnection;
 @Slf4j
 public class DownloaderImpl implements Downloader {
 
-    @Autowired
-    private DownloadFileFetcher downloadFileFetcher;
-
     @Override
-    public void download(SimpleDownloadTask task, DownloadCallback callback) throws IOException {
-        DownloadFile downloadFile = downloadFileFetcher.fetch(task.getUrl());
-        InnerDownloadTask innerDownloadTask = new InnerDownloadTask(task.getUrl(), task.getSaveFile(), false);
-        innerDownloadTask.setStartSize(0);
-        innerDownloadTask.setEndSize(downloadFile.getSize());
-        download(innerDownloadTask, callback);
+    public void download(Task task, DownloadCallback callback) throws IOException {
+        download(task, callback, task.finished(), getPubHeader());
     }
 
     @Override
-    public void download(RangeDownloadTask task, DownloadCallback callback) throws IOException {
-        InnerDownloadTask innerDownloadTask = new InnerDownloadTask(task.getUrl(), task.getSaveFile(), true);
-        innerDownloadTask.setTotal(task.getTotal());
-        innerDownloadTask.setStartSize(task.getStartSize());
-        innerDownloadTask.setEndSize(task.getEndSize());
-        download(innerDownloadTask, callback);
+    public void download(RangeTask task, DownloadCallback callback) throws IOException {
+        Map<String, String> headers = getPubHeader();
+        headers.put("RANGE", "bytes=" + task.startOffset() + "-" + task.targetOffset());
+        long startSize = task.startOffset() + task.finished();
+        log.info("startOffset:{};targetOffset:{};startSize:{}", task.startOffset(), task.targetOffset(), startSize);
+        download(task, callback, startSize, headers);
     }
 
-    private void download(InnerDownloadTask task, DownloadCallback callback) throws IOException {
-        log.trace("download file, length:{}~{}", task.getStartSize(), task.getEndSize());
-        long totalSize = task.getEndSize() - task.getStartSize();
+    private void download(Task task, DownloadCallback callback, long startSize, Map<String, String> headers) throws IOException {
+        long totalSize = task.total();
         long downloadSize = 0;
         RandomAccessFile randomAccessFile = new RandomAccessFile(task.getSaveFile(), "rw");
-        randomAccessFile.seek(task.getStartSize());
+        randomAccessFile.seek(startSize);
 
         InputStream in = null;
         try {
             URL realUrl = new URL(task.getUrl());
             URLConnection connection = realUrl.openConnection();
-            connection.setRequestProperty("accept", "*/*");
-            connection.setRequestProperty("connection", "Keep-Alive");
-            connection.setRequestProperty("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
-            if (task.isCanRange()) {
-                connection.setRequestProperty("RANGE", "bytes=" + task.getStartSize() + "-" + task.getEndSize());
+            if (headers != null) {
+                headers.forEach(connection::setRequestProperty);
             }
             connection.setConnectTimeout(10000);
             connection.connect();
@@ -69,17 +56,18 @@ public class DownloaderImpl implements Downloader {
             in = connection.getInputStream();
             int length;
             byte[] buffer = new byte[1024];
-            while ((length = in.read(buffer)) != -1) {
+            while (task.isRunning() && (length = in.read(buffer)) != -1) {
                 downloadSize += length;
                 randomAccessFile.write(buffer, 0, length);
                 callback.downloadProcess(totalSize, downloadSize);
             }
 
-            byte[] bytes = StreamUtils.copyToByteArray(in);
-            randomAccessFile.write(bytes);
-
-
         } finally {
+            System.out.println("finish:" + startSize + "-" + totalSize + ":" + downloadSize);
+
+            if (task.finished() == task.total()) {
+                task.updateStatus(TaskStatus.FINISHED);
+            }
             try {
                 if (in != null) {
                     in.close();
@@ -88,7 +76,14 @@ public class DownloaderImpl implements Downloader {
                 e2.printStackTrace();
             }
         }
-        log.trace("download finish: {}~{};size:{};total download size:{}", task.getStartSize(), task.getEndSize(), totalSize, downloadSize);
+        log.trace("download finish: start size {};total:{};total download size:{}", startSize, totalSize, downloadSize);
     }
 
+    private Map<String, String> getPubHeader() {
+        Map<String, String> headers = new HashMap<>(8);
+        headers.put("accept", "*/*");
+        headers.put("connection", "Keep-Alive");
+        headers.put("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+        return headers;
+    }
 }

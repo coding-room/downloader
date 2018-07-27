@@ -1,8 +1,8 @@
 package cr.downloader.downloader;
 
-import cr.downloader.downloader.task.SimpleDownloadTask;
 import cr.downloader.http.DownloadFile;
 import cr.downloader.http.DownloadFileFetcher;
+import cr.downloader.task.SimpleTask;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +35,10 @@ public class DownloaderTest {
         String url = "http://mirror.bit.edu.cn/apache/tomcat/tomcat-8/v8.5.32/bin/apache-tomcat-8.5.32.tar.gz";
         DownloadFile downloadFile = downloadFileFetcher.fetch(url);
         File target = new File(root, downloadFile.getFileName());
-        SimpleDownloadTask task = new SimpleDownloadTask(url, target);
 
+        SimpleTask task = new SimpleTask(url, target, null);
+        task.setTotal(downloadFile.getSize());
+        task.setRunning(true);
 
         downloader.download(task, (total, finished) -> {
             System.out.println(total + ":" + finished);
