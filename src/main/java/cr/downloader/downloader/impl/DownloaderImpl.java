@@ -24,12 +24,12 @@ import java.util.Map;
 public class DownloaderImpl implements Downloader {
 
     @Override
-    public void download(Task task, DownloadCallback callback) throws IOException {
+    public void download(Task task, DownloadCallback callback) {
         download(task, callback, task.finished(), getPubHeader());
     }
 
     @Override
-    public void download(RangeTask task, DownloadCallback callback) throws IOException {
+    public void download(RangeTask task, DownloadCallback callback) {
         Map<String, String> headers = getPubHeader();
         headers.put("RANGE", "bytes=" + task.startOffset() + "-" + task.targetOffset());
         long startSize = task.startOffset() + task.finished();
@@ -37,14 +37,14 @@ public class DownloaderImpl implements Downloader {
         download(task, callback, startSize, headers);
     }
 
-    private void download(Task task, DownloadCallback callback, long startSize, Map<String, String> headers) throws IOException {
+    private void download(Task task, DownloadCallback callback, long startSize, Map<String, String> headers) {
         long totalSize = task.total();
         long downloadSize = 0;
-        RandomAccessFile randomAccessFile = new RandomAccessFile(task.getSaveFile(), "rw");
-        randomAccessFile.seek(startSize);
 
         InputStream in = null;
         try {
+            RandomAccessFile randomAccessFile = new RandomAccessFile(task.getSaveFile(), "rw");
+            randomAccessFile.seek(startSize);
             URL realUrl = new URL(task.getUrl());
             URLConnection connection = realUrl.openConnection();
             if (headers != null) {
@@ -62,11 +62,13 @@ public class DownloaderImpl implements Downloader {
                 task.appendFinish(length);
                 callback.downloadProcess(totalSize, length);
             }
-
+            callback.downloadFinished(totalSize, downloadSize);
+        } catch (IOException e) {
+            callback.downloadException(totalSize, downloadSize, e);
         } finally {
             System.out.println("finish:" + startSize + "-" + totalSize + ":" + downloadSize);
 
-            if (task.finished() == task.total()) {
+            if (task.finished() >= task.total()) {
                 task.updateStatus(TaskStatus.FINISHED);
             }
             try {

@@ -14,8 +14,8 @@ public class SimpleRangeTask extends SimpleTask implements RangeTask {
     private final long startOffset;
     private final long targetOffset;
 
-    protected SimpleRangeTask(String url, File saveFile, long startOffset, long targetOffset, TaskExecutor taskExecutor) {
-        super(url, saveFile, taskExecutor);
+    protected SimpleRangeTask(String taskId, String url, File saveFile, long startOffset, long targetOffset, TaskExecutor taskExecutor) {
+        super(taskId, url, saveFile, taskExecutor);
         this.startOffset = startOffset;
         this.targetOffset = targetOffset;
     }

@@ -8,6 +8,12 @@ import java.util.concurrent.atomic.AtomicLong;
  * @create 2018-07-27 13:56
  */
 public abstract class AbstractTask implements Task {
+
+    /**
+     * 任务id
+     */
+    private final String taskId;
+
     /**
      * 下载地址
      */
@@ -36,7 +42,8 @@ public abstract class AbstractTask implements Task {
 
     private TaskStatus status;
 
-    protected AbstractTask(String url, File saveFile) {
+    protected AbstractTask(String taskId, String url, File saveFile) {
+        this.taskId = taskId;
         this.url = url;
         this.saveFile = saveFile;
         status = TaskStatus.INIT;
@@ -61,8 +68,9 @@ public abstract class AbstractTask implements Task {
         this.running = running;
     }
 
-    public void setFinished(AtomicLong finished) {
-        this.finished = finished;
+    @Override
+    public String taskId() {
+        return taskId;
     }
 
     @Override

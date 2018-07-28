@@ -1,5 +1,6 @@
 package cr.downloader.task;
 
+import cr.downloader.downloader.DownloadCallback;
 import cr.downloader.http.DownloadFile;
 import cr.downloader.http.DownloadFileFetcher;
 import cr.downloader.task.execute.TaskExecutor;
@@ -62,13 +63,27 @@ public class TaskTest {
             } else {
                 end = start + pageSize;
             }
-            SimpleRangeTask task = new SimpleRangeTask(url, target, start, end, taskExecutor);
+            String taskId = "taskId";
+            SimpleRangeTask task = new SimpleRangeTask(taskId, url, target, start, end, taskExecutor);
             task.setTotal(end - start);
-            task.start((total, finished) -> {
-                if (finished > total) {
-                    System.out.println("error:" + total + "-" + finished);
+            task.start(new DownloadCallback() {
+                @Override
+                public void downloadProcess(long total, long finished) {
+                    if (finished > total) {
+                        System.out.println("error:" + total + "-" + finished);
+                    }
+                    downLoadSize.addAndGet(finished);
                 }
-                downLoadSize.addAndGet(finished);
+
+                @Override
+                public void downloadFinished(long total, long downloadSize) {
+
+                }
+
+                @Override
+                public void downloadException(long total, long downloadSize, Exception e) {
+
+                }
             });
 
         }

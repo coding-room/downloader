@@ -14,8 +14,8 @@ public class SimpleTask extends AbstractTask implements TaskExecutable {
 
     private final TaskExecutor taskExecutor;
 
-    public SimpleTask(String url, File saveFile, TaskExecutor taskExecutor) {
-        super(url, saveFile);
+    public SimpleTask(String taskId, String url, File saveFile, TaskExecutor taskExecutor) {
+        super(taskId, url, saveFile);
         this.taskExecutor = taskExecutor;
     }
 

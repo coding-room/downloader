@@ -10,7 +10,7 @@ import java.io.IOException;
  */
 public interface Downloader {
 
-    void download(Task task, DownloadCallback callback) throws IOException;
+    void download(Task task, DownloadCallback callback);
 
-    void download(RangeTask task, DownloadCallback callback) throws IOException;
+    void download(RangeTask task, DownloadCallback callback);
 }

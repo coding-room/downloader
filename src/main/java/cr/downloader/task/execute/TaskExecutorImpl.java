@@ -4,19 +4,16 @@ import cr.downloader.downloader.DownloadCallback;
 import cr.downloader.downloader.Downloader;
 import cr.downloader.task.RangeTask;
 import cr.downloader.task.Task;
-import cr.downloader.task.TaskStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
  * @author Beldon
  */
-@SuppressWarnings("Duplicates")
 @Service
 @Slf4j
 public class TaskExecutorImpl implements TaskExecutor {
@@ -33,24 +30,14 @@ public class TaskExecutorImpl implements TaskExecutor {
             return;
         }
         executorService.submit(() -> {
-            try {
-                downloader.download(task, callback);
-            } catch (IOException e) {
-                log.error("download file error:{}", task.getSaveFile().getName());
-                task.updateStatus(TaskStatus.FAIL);
-            }
+            downloader.download(task, callback);
         });
     }
 
     @Override
     public void execute(RangeTask task, DownloadCallback callback) {
         executorService.submit(() -> {
-            try {
-                downloader.download(task, callback);
-            } catch (IOException e) {
-                log.error("download file error:{}", task.getSaveFile().getName());
-                task.updateStatus(TaskStatus.FAIL);
-            }
+            downloader.download(task, callback);
         });
     }
 

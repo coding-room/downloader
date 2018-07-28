@@ -7,6 +7,8 @@ import java.io.File;
  */
 public interface Task {
 
+    String taskId();
+
 
     /**
      * 下载的url
