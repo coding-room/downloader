@@ -42,7 +42,6 @@ public class DownLoadManagerImpl implements DownloadManager {
     private ChunkInfoRepo chunkInfoRepo;
     @Autowired
     private DownloadFileFetcher downloadFileFetcher;
-
     @Autowired
     private TaskExecutor taskExecutor;
 
