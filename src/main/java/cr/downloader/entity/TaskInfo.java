@@ -77,6 +77,7 @@ public class TaskInfo {
     /**
      * 分块数
      */
+    @OneToMany(mappedBy = "taskId",fetch = FetchType.EAGER)
     private List<ChunkInfo> chunks;
 
 }

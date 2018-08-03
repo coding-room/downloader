@@ -39,6 +39,6 @@ public class TaskGroup {
      */
     private Date updateTime;
 
-    @OneToMany(mappedBy = "groupId")
+    @OneToMany(mappedBy = "groupId", fetch = FetchType.EAGER)
     private List<TaskInfo> tasks;
 }

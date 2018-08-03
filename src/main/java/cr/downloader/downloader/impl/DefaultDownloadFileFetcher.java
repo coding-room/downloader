@@ -54,7 +54,7 @@ public class DefaultDownloadFileFetcher implements DownloadFileFetcher {
                     downloadFile.setContentType(v.get(0));
                     break;
                 case ACCEPT_RANGES_KEY:
-                    downloadFile.setCanRanges(true);
+                    downloadFile.setSupportRanges(true);
             }
         });
 

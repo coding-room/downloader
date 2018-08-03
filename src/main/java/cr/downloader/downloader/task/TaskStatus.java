@@ -7,31 +7,45 @@ public enum TaskStatus {
     /**
      * 初始化
      */
-    INIT,
+    INIT("init"),
     /**
      * 执行中
      */
-    RUNNING,
+    RUNNING("running"),
 
     /**
      * 暂停
      */
-    PAUSE,
+    PAUSE("pause"),
 
 
     /**
      * 终止，未完成，外界终止
      */
-    STOP,
+    STOP("stop"),
 
     /**
      * 已完成
      */
-    FINISHED,
+    FINISHED("finish"),
 
     /**
      * 执行失败
      */
-    FAIL
+    FAIL("fail");
 
+    private String value;
+
+    TaskStatus(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    @Override
+    public String toString() {
+        return value;
+    }
 }

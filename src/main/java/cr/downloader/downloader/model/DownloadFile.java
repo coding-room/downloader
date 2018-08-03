@@ -24,6 +24,6 @@ public class DownloadFile {
     /**
      * 是否能断点下载
      */
-    private boolean canRanges;
+    private boolean supportRanges;
 }
 
