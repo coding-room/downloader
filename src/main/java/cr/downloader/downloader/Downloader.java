@@ -1,9 +1,7 @@
 package cr.downloader.downloader;
 
-import cr.downloader.task.RangeTask;
-import cr.downloader.task.Task;
-
-import java.io.IOException;
+import cr.downloader.downloader.task.RangeTask;
+import cr.downloader.downloader.task.Task;
 
 /**
  * @author beldon

@@ -1,8 +1,7 @@
-package cr.downloader.task.execute;
+package cr.downloader.downloader;
 
-import cr.downloader.downloader.DownloadCallback;
-import cr.downloader.task.RangeTask;
-import cr.downloader.task.Task;
+import cr.downloader.downloader.task.RangeTask;
+import cr.downloader.downloader.task.Task;
 
 /**
  * @author Beldon

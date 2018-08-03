@@ -1,9 +1,9 @@
-package cr.downloader.task;
+package cr.downloader.downloader.task;
 
 import cr.downloader.downloader.DownloadCallback;
-import cr.downloader.http.DownloadFile;
-import cr.downloader.http.DownloadFileFetcher;
-import cr.downloader.task.execute.TaskExecutor;
+import cr.downloader.downloader.DownloadFileFetcher;
+import cr.downloader.downloader.TaskExecutor;
+import cr.downloader.downloader.model.DownloadFile;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

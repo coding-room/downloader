@@ -1,9 +1,10 @@
-package cr.downloader.task.execute;
+package cr.downloader.downloader.impl;
 
 import cr.downloader.downloader.DownloadCallback;
 import cr.downloader.downloader.Downloader;
-import cr.downloader.task.RangeTask;
-import cr.downloader.task.Task;
+import cr.downloader.downloader.TaskExecutor;
+import cr.downloader.downloader.task.RangeTask;
+import cr.downloader.downloader.task.Task;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

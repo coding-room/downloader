@@ -1,4 +1,4 @@
-package cr.downloader.http;
+package cr.downloader.downloader.model;
 
 import lombok.Data;
 

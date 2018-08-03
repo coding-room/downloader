@@ -1,4 +1,4 @@
-package cr.downloader.task;
+package cr.downloader.downloader.task;
 
 /**
  * @author Beldon

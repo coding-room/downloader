@@ -1,4 +1,6 @@
-package cr.downloader.http;
+package cr.downloader.downloader;
+
+import cr.downloader.downloader.model.DownloadFile;
 
 import java.io.IOException;
 

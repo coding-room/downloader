@@ -1,7 +1,6 @@
 package cr.downloader.downloader;
 
-import cr.downloader.http.DownloadFile;
-import cr.downloader.http.DownloadFileFetcher;
+import cr.downloader.downloader.model.DownloadFile;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

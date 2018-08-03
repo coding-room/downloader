@@ -1,5 +1,7 @@
-package cr.downloader.http;
+package cr.downloader.downloader.impl;
 
+import cr.downloader.downloader.DownloadFileFetcher;
+import cr.downloader.downloader.model.DownloadFile;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;

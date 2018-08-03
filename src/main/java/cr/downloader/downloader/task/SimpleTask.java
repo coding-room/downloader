@@ -1,7 +1,7 @@
-package cr.downloader.task;
+package cr.downloader.downloader.task;
 
 import cr.downloader.downloader.DownloadCallback;
-import cr.downloader.task.execute.TaskExecutor;
+import cr.downloader.downloader.TaskExecutor;
 
 import java.io.File;
 

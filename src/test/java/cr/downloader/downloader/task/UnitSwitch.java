@@ -1,4 +1,4 @@
-package cr.downloader.task;
+package cr.downloader.downloader.task;
 
 import java.text.DecimalFormat;
 
