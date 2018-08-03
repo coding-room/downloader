@@ -6,12 +6,13 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
-@Table(name = "t_task_file")
+@Table(name = "t_task_info")
 @Data
 @Accessors(chain = true)
-public class TaskFile {
+public class TaskInfo {
     @Id
     @Column(length = 32)
     @GeneratedValue(generator = "uuid")
@@ -36,7 +37,7 @@ public class TaskFile {
     /**
      * 是否可断点下载
      */
-    private boolean canRange;
+    private boolean supportRange;
 
     /**
      * 文件长度
@@ -72,5 +73,10 @@ public class TaskFile {
      * 更新时间
      */
     private Date updateTime;
+
+    /**
+     * 分块数
+     */
+    private List<ChunkInfo> chunks;
 
 }

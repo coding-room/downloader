@@ -1,43 +1,33 @@
 package cr.downloader.entity;
 
-
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.Date;
 
+/**
+ * @author Beldon
+ */
 @Entity
-@Table(name = "t_download_task")
+@Table(name = "t_global_config")
 @Data
 @Accessors(chain = true)
-public class DownloadTask {
+public class GlobalConfig {
     @Id
     @Column(length = 32)
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid")
     private String id;
 
-    private String taskId;
+    @Column(unique = true)
+    private String key;
 
-    /**
-     * 状态，|finish|fail
-     */
+    @Column(columnDefinition = "Text")
+    private String value;
 
-    private String status;
+    private Date createTime;
 
-    /**
-     * 开始位置
-     */
-    private Long startOffset;
-
-    /**
-     * 结束位置
-     */
-    private Long targetOffset;
-
-    /**
-     * 下载数量
-     */
-    private long finished;
+    private Date updateTime;
 }

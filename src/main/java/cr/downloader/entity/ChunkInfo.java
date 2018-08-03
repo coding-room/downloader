@@ -1,44 +1,43 @@
 package cr.downloader.entity;
 
+
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
-import java.util.Date;
-import java.util.List;
 
 @Entity
-@Table(name = "t_task_group")
+@Table(name = "t_chunk_info")
 @Data
 @Accessors(chain = true)
-public class TaskGroup {
+public class ChunkInfo {
     @Id
     @Column(length = 32)
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid")
     private String id;
 
+    private String taskId;
+
     /**
-     * 状态，init|running|pause|finish|fail
+     * 状态，|finish|fail
      */
+
     private String status;
 
     /**
-     * 创建时间
+     * 开始位置
      */
-    private Date createTime;
+    private Long startOffset;
 
     /**
-     * 完成时间
+     * 结束位置
      */
-    private Date finishTime;
+    private Long targetOffset;
 
     /**
-     * 更新时间
+     * 下载数量
      */
-    private Date updateTime;
-
-    @OneToMany(mappedBy = "groupId")
-    private List<TaskInfo> tasks;
+    private long finished;
 }

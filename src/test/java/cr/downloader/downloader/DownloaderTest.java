@@ -2,7 +2,6 @@ package cr.downloader.downloader;
 
 import cr.downloader.http.DownloadFile;
 import cr.downloader.http.DownloadFileFetcher;
-import cr.downloader.task.SimpleTask;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,13 +35,13 @@ public class DownloaderTest {
         DownloadFile downloadFile = downloadFileFetcher.fetch(url);
         File target = new File(root, downloadFile.getFileName());
 
-        SimpleTask task = new SimpleTask(url, target, null);
-        task.setTotal(downloadFile.getSize());
-        task.setRunning(true);
-
-        downloader.download(task, (total, finished) -> {
-            System.out.println(total + ":" + finished);
-        });
+//        SimpleTask task = new SimpleTask(url, target, null);
+//        task.setTotal(downloadFile.getSize());
+//        task.setRunning(true);
+//
+//        downloader.download(task, (total, finished) -> {
+//            System.out.println(total + ":" + finished);
+//        });
     }
 
 }
