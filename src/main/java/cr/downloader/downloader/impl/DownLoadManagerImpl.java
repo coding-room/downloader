@@ -1,9 +1,6 @@
 package cr.downloader.downloader.impl;
 
-import cr.downloader.downloader.DownloadCallback;
-import cr.downloader.downloader.DownloadFileFetcher;
-import cr.downloader.downloader.DownloadManager;
-import cr.downloader.downloader.TaskExecutor;
+import cr.downloader.downloader.*;
 import cr.downloader.downloader.model.DownloadFile;
 import cr.downloader.downloader.model.GroupTask;
 import cr.downloader.downloader.task.SimpleRangeTask;
@@ -16,6 +13,7 @@ import cr.downloader.entity.TaskInfo;
 import cr.downloader.repo.ChunkInfoRepo;
 import cr.downloader.repo.TaskGroupRepo;
 import cr.downloader.repo.TaskInfoRepo;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -25,7 +23,9 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Beldon
@@ -33,6 +33,8 @@ import java.util.Optional;
  */
 @Service
 public class DownLoadManagerImpl implements DownloadManager {
+
+    private final Map<String, TaskExecutableGroup> taskExecutableGroupMap = new ConcurrentHashMap<>(64);
 
     @Autowired
     private TaskGroupRepo taskGroupRepo;
@@ -44,6 +46,9 @@ public class DownLoadManagerImpl implements DownloadManager {
     private DownloadFileFetcher downloadFileFetcher;
     @Autowired
     private TaskExecutor taskExecutor;
+
+    @Autowired
+    private DownloadSpeedManager downloadSpeedManager;
 
     @Override
     public String createGroupTask(GroupTask task) throws IOException {
@@ -87,67 +92,125 @@ public class DownLoadManagerImpl implements DownloadManager {
 
     @Override
     public void startTask(String taskId) throws IOException {
-        Optional<TaskGroup> taskGroupOptional = taskGroupRepo.findById(taskId);
+        Optional<TaskInfo> taskInfoOptional = taskInfoRepo.findById(taskId);
+        if (taskInfoOptional.isPresent()) {
+            startTask(taskInfoOptional.get());
+        }
+    }
+
+    @Override
+    public void pauseTask(String taskId) {
+        Optional<TaskInfo> taskInfoOptional = taskInfoRepo.findById(taskId);
+        if (taskInfoOptional.isPresent()) {
+            TaskInfo taskInfo = taskInfoOptional.get();
+            pauseTask(taskInfo);
+        }
+    }
+
+    @Override
+    public void startGroup(String groupId) throws IOException {
+        Optional<TaskGroup> taskGroupOptional = taskGroupRepo.findById(groupId);
         if (taskGroupOptional.isPresent()) {
             TaskGroup taskGroup = taskGroupOptional.get();
             List<TaskInfo> tasks = taskGroup.getTasks();
             if (!CollectionUtils.isEmpty(tasks)) {
                 for (TaskInfo task : tasks) {
-                    File saveFile = checkAndCreateFile(task);
-                    List<ChunkInfo> chunks = task.getChunks();
-                    if (!CollectionUtils.isEmpty(chunks)) {
-                        for (ChunkInfo chunk : chunks) {
-                            TaskExecutable taskExecutable;
-                            if (task.isSupportRange()) {
-                                taskExecutable = new SimpleRangeTask(task.getId(), task.getUrl(), saveFile, chunk.getStartOffset(), chunk.getTargetOffset(), taskExecutor);
-                            } else {
-                                taskExecutable = new SimpleTask(task.getId(), task.getUrl(), saveFile, taskExecutor);
-                            }
-                            startTask(task, chunk, taskExecutable);
-                        }
-                    }
+                    startTask(task);
                 }
+            }
+        }
+    }
+
+    @Override
+    public void pauseGroup(String groupId) {
+        downloadSpeedManager.removeGroup(groupId);
+        Optional<TaskGroup> taskGroupOptional = taskGroupRepo.findById(groupId);
+        if (taskGroupOptional.isPresent()) {
+            TaskGroup taskGroup = taskGroupOptional.get();
+            List<TaskInfo> tasks = taskGroup.getTasks();
+            if (!CollectionUtils.isEmpty(tasks)) {
+                for (TaskInfo task : tasks) {
+                    pauseTask(task);
+                }
+            }
+        }
+    }
+
+
+    /**
+     * 启动一个任务
+     *
+     * @param taskInfo
+     * @throws IOException
+     */
+    private void startTask(TaskInfo taskInfo) throws IOException {
+        File saveFile = checkAndCreateFile(taskInfo);
+        List<ChunkInfo> chunks = taskInfo.getChunks();
+        if (!CollectionUtils.isEmpty(chunks)) {
+            for (ChunkInfo chunk : chunks) {
+                TaskExecutable taskExecutable;
+                if (taskInfo.isSupportRange()) {
+                    taskExecutable = new SimpleRangeTask(taskInfo.getId(), taskInfo.getUrl(), saveFile, chunk.getStartOffset(), chunk.getTargetOffset(), taskExecutor);
+                } else {
+                    taskExecutable = new SimpleTask(taskInfo.getId(), taskInfo.getUrl(), saveFile, taskExecutor);
+                }
+                startTask(taskInfo.getGroupId(), taskInfo.getId(), chunk.getId(), taskExecutable);
             }
         }
 
     }
 
-    @Override
-    public void pauseTask(String taskId) {
 
-    }
-
-    @Override
-    public void startGroup(String groupId) {
-
-    }
-
-    @Override
-    public void pauseGroup(String groupId) {
-
+    private void pauseTask(TaskInfo taskInfo) {
+        downloadSpeedManager.removeTask(taskInfo.getId());
+        TaskExecutableGroup taskExecutableGroup = taskExecutableGroupMap.remove(taskInfo.getId());
+        taskExecutableGroup.getExecutors().forEach((chunkId, taskExecutable) -> {
+            taskExecutable.pause();
+        });
     }
 
     /**
      * 启动一个任务
-     * @param task
-     * @param chunk
+     *
+     * @param groupId        分组id
+     * @param taskId         任务id
+     * @param chunkId        块id
      * @param taskExecutable
      */
-    private void startTask(final TaskInfo task, final ChunkInfo chunk, TaskExecutable taskExecutable) {
+    private void startTask(final String groupId, final String taskId, final String chunkId, TaskExecutable taskExecutable) {
+        TaskExecutableGroup taskExecutableGroup;
+        if (taskExecutableGroupMap.containsKey(taskId)) {
+            taskExecutableGroup = taskExecutableGroupMap.get(taskId);
+        } else {
+            taskExecutableGroup = new TaskExecutableGroup(taskId);
+            taskExecutableGroupMap.put(taskId, taskExecutableGroup);
+        }
+        taskExecutableGroup.getExecutors().put(chunkId, taskExecutable);
         taskExecutable.start(new DownloadCallback() {
             @Override
             public void downloadProcess(long total, long finished) {
-                System.out.println("downloadProcess:" + total + ":" + finished);
+                downloadSpeedManager.appendDataCount(groupId, taskId, chunkId, finished);
             }
 
             @Override
             public void downloadFinished(long total, long downloadSize) {
-                System.out.println("downloadFinished:" + total + ":" + downloadSize);
+                checkAndRemove();
             }
 
             @Override
             public void downloadException(long total, long downloadSize, Exception e) {
-                System.out.println("downloadException:" + total + ":" + downloadSize);
+                checkAndRemove();
+            }
+
+            private void checkAndRemove() {
+                TaskExecutableGroup taskGroup = taskExecutableGroupMap.get(taskId);
+                if (taskGroup != null) {
+                    taskGroup.getExecutors().remove(chunkId);
+                    if (taskGroup.getExecutors().isEmpty()) {
+                        taskExecutableGroupMap.remove(taskId);
+                        downloadSpeedManager.removeTask(taskId);
+                    }
+                }
             }
         });
     }
@@ -175,6 +238,13 @@ public class DownLoadManagerImpl implements DownloadManager {
 
     private long divisive(long size, int chunk) {
         return (size - 1) / chunk + 1;
+    }
+
+
+    @Data
+    private static class TaskExecutableGroup {
+        private final String taskId;
+        private final Map<String, TaskExecutable> executors = new ConcurrentHashMap<>(64);
     }
 
 }

@@ -15,6 +15,7 @@ public interface DownloadManager {
      *
      * @param task
      * @return taskId
+     * @throws IOException
      */
     String createGroupTask(GroupTask task) throws IOException;
 
@@ -22,6 +23,7 @@ public interface DownloadManager {
      * 开始一个任务
      *
      * @param taskId
+     * @throws IOException
      */
     void startTask(String taskId) throws IOException;
 
@@ -37,7 +39,7 @@ public interface DownloadManager {
      *
      * @param groupId
      */
-    void startGroup(String groupId);
+    void startGroup(String groupId) throws IOException;
 
     /**
      * 暂停一个任务组

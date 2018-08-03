@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Data
 public class ChunkSpeed {
-    private String chunkId;
-    private long startTime;
+    private final String chunkId;
+    private final long startTime;
     private final AtomicLong downloadCount = new AtomicLong();
 }

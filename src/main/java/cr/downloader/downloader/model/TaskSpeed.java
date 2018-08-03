@@ -12,8 +12,8 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Data
 public class TaskSpeed {
-    private String taskId;
-    private long startTime;
+    private final String taskId;
+    private final long startTime;
     private final AtomicLong downloadCount = new AtomicLong();
     private final Map<String, ChunkSpeed> chunkSpeeds = new ConcurrentHashMap<>();
 

@@ -12,8 +12,8 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Data
 public class GroupSpeed {
-    private String groupId;
-    private long startTime;
+    private final String groupId;
+    private final long startTime;
     private final AtomicLong downloadCount = new AtomicLong();
     private final Map<String, TaskSpeed> taskSpeeds = new ConcurrentHashMap<>();
 

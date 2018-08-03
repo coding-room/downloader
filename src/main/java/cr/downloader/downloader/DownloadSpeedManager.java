@@ -3,6 +3,7 @@ package cr.downloader.downloader;
 import cr.downloader.downloader.model.ChunkSpeed;
 import cr.downloader.downloader.model.GroupSpeed;
 import cr.downloader.downloader.model.TaskSpeed;
+import org.springframework.scheduling.annotation.Async;
 
 /**
  * @author Beldon
@@ -18,6 +19,7 @@ public interface DownloadSpeedManager {
      * @param chunkId  分块id
      * @param finished 完成数据
      */
+    @Async
     void appendDataCount(String groupId, String taskId, String chunkId, long finished);
 
     /**
@@ -25,6 +27,7 @@ public interface DownloadSpeedManager {
      *
      * @param groupId
      */
+    @Async
     void removeGroup(String groupId);
 
     /**
@@ -32,6 +35,7 @@ public interface DownloadSpeedManager {
      *
      * @param taskId
      */
+    @Async
     void removeTask(String taskId);
 
     /**

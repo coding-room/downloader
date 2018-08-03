@@ -4,6 +4,7 @@ import cr.downloader.downloader.DownloadCallback;
 import cr.downloader.downloader.DownloadFileFetcher;
 import cr.downloader.downloader.TaskExecutor;
 import cr.downloader.downloader.model.DownloadFile;
+import cr.downloader.util.UnitSwitch;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
