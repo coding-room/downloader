@@ -6,7 +6,7 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "t_task_group")
@@ -40,5 +40,5 @@ public class TaskGroup {
     private Date updateTime;
 
     @OneToMany(mappedBy = "groupId", fetch = FetchType.EAGER)
-    private List<TaskInfo> tasks;
+    private Set<TaskInfo> tasks;
 }

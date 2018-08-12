@@ -18,6 +18,7 @@ public class SimpleRangeTask extends SimpleTask implements RangeTask {
         super(taskId, url, saveFile, taskExecutor);
         this.startOffset = startOffset;
         this.targetOffset = targetOffset;
+        setTotal(targetOffset - startOffset + 1);
     }
 
     @Override

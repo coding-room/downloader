@@ -18,8 +18,8 @@ import java.util.concurrent.TimeUnit;
 @SpringBootTest
 public class DownloadManagerTest {
 
-//    private final String url = "http://mirror.bit.edu.cn/apache/tomcat/tomcat-8/v8.5.32/bin/apache-tomcat-8.5.32.tar.gz";
-    private final String url = "https://download.jetbrains.8686c.com/idea/ideaIU-2018.2.dmg";
+    private final String url = "http://mirror.bit.edu.cn/apache/tomcat/tomcat-8/v8.5.32/bin/apache-tomcat-8.5.32.tar.gz";
+//    private final String url = "https://download.jetbrains.8686c.com/idea/ideaIU-2018.2.dmg";
     private final String savePath = "./download";
 
     @Autowired
@@ -31,6 +31,8 @@ public class DownloadManagerTest {
         groupTask.setSavePath(savePath);
         groupTask.setChunkSize(30);
         groupTask.setUrls(Arrays.asList(url));
+
+
         String groupId = downloadManager.createGroupTask(groupTask);
         System.out.println(groupId);
 

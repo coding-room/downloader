@@ -20,11 +20,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -112,7 +108,7 @@ public class DownLoadManagerImpl implements DownloadManager {
         Optional<TaskGroup> taskGroupOptional = taskGroupRepo.findById(groupId);
         if (taskGroupOptional.isPresent()) {
             TaskGroup taskGroup = taskGroupOptional.get();
-            List<TaskInfo> tasks = taskGroup.getTasks();
+            Collection<TaskInfo> tasks = taskGroup.getTasks();
             if (!CollectionUtils.isEmpty(tasks)) {
                 for (TaskInfo task : tasks) {
                     startTask(task);
@@ -127,7 +123,7 @@ public class DownLoadManagerImpl implements DownloadManager {
         Optional<TaskGroup> taskGroupOptional = taskGroupRepo.findById(groupId);
         if (taskGroupOptional.isPresent()) {
             TaskGroup taskGroup = taskGroupOptional.get();
-            List<TaskInfo> tasks = taskGroup.getTasks();
+            Collection<TaskInfo> tasks = taskGroup.getTasks();
             if (!CollectionUtils.isEmpty(tasks)) {
                 for (TaskInfo task : tasks) {
                     pauseTask(task);
@@ -203,6 +199,7 @@ public class DownLoadManagerImpl implements DownloadManager {
             }
 
             private void checkAndRemove() {
+                downloadSpeedManager.removeChunk(chunkId);
                 TaskExecutableGroup taskGroup = taskExecutableGroupMap.get(taskId);
                 if (taskGroup != null) {
                     taskGroup.getExecutors().remove(chunkId);
@@ -227,11 +224,6 @@ public class DownLoadManagerImpl implements DownloadManager {
         File saveFile = new File(savePath, createDownFile(taskInfo.getFileName()));
         if (!saveFile.exists()) {
             saveFile.createNewFile();
-//            try (
-//                    RandomAccessFile raf = new RandomAccessFile(saveFile, "rw")
-//            ) {
-////                raf.setLength(taskInfo.getFileLength());
-//            }
         }
         return saveFile;
     }

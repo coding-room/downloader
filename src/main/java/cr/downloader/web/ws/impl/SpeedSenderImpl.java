@@ -17,16 +17,16 @@ public class SpeedSenderImpl implements SpeedSender {
 
     @Override
     public void sendGroupSpeed(String groupId, String msg) {
-
+//        System.out.println("group:" + groupId + ";" + msg);
     }
 
     @Override
     public void sendTaskSpeed(String taskId, String msg) {
-
+//        System.out.println("taskId:" + taskId + ";" + msg);
     }
 
     @Override
     public void sendChunkSpeed(String chunkId, String msg) {
-
+        System.out.println("chunkId:" + chunkId + ";" + msg);
     }
 }
