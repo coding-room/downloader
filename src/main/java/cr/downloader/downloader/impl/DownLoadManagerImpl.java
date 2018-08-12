@@ -14,6 +14,7 @@ import cr.downloader.repo.ChunkInfoRepo;
 import cr.downloader.repo.TaskGroupRepo;
 import cr.downloader.repo.TaskInfoRepo;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -28,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @create 2018-08-03 12:18
  */
 @Service
+@Slf4j
 public class DownLoadManagerImpl implements DownloadManager {
 
     private final Map<String, TaskExecutableGroup> taskExecutableGroupMap = new ConcurrentHashMap<>(64);
@@ -66,6 +68,7 @@ public class DownLoadManagerImpl implements DownloadManager {
             taskInfo.setGroupId(taskGroup.getId());
             taskInfo.setCreateTime(now);
             taskInfoRepo.save(taskInfo);
+            log.trace("create task,chunk size {},task id is {}", task.getChunkSize(), taskInfo.getId());
             long divisive = divisive(taskInfo.getFileLength(), task.getChunkSize());
             for (int i = 0; i < task.getChunkSize(); i++) {
                 long startOffset = i * divisive;
@@ -109,6 +112,7 @@ public class DownLoadManagerImpl implements DownloadManager {
         if (taskGroupOptional.isPresent()) {
             TaskGroup taskGroup = taskGroupOptional.get();
             Collection<TaskInfo> tasks = taskGroup.getTasks();
+            log.trace("start group [{}], task size {}", groupId, tasks.size());
             if (!CollectionUtils.isEmpty(tasks)) {
                 for (TaskInfo task : tasks) {
                     startTask(task);
@@ -119,7 +123,6 @@ public class DownLoadManagerImpl implements DownloadManager {
 
     @Override
     public void pauseGroup(String groupId) {
-        downloadSpeedManager.removeGroup(groupId);
         Optional<TaskGroup> taskGroupOptional = taskGroupRepo.findById(groupId);
         if (taskGroupOptional.isPresent()) {
             TaskGroup taskGroup = taskGroupOptional.get();
@@ -142,6 +145,7 @@ public class DownLoadManagerImpl implements DownloadManager {
     private void startTask(TaskInfo taskInfo) throws IOException {
         File saveFile = checkAndCreateFile(taskInfo);
         List<ChunkInfo> chunks = taskInfo.getChunks();
+        log.trace("start task [{}], chunk size {}", taskInfo.getId(), chunks.size());
         if (!CollectionUtils.isEmpty(chunks)) {
             for (ChunkInfo chunk : chunks) {
                 TaskExecutable taskExecutable;
@@ -158,9 +162,9 @@ public class DownLoadManagerImpl implements DownloadManager {
 
 
     private void pauseTask(TaskInfo taskInfo) {
-        downloadSpeedManager.removeTask(taskInfo.getId());
         TaskExecutableGroup taskExecutableGroup = taskExecutableGroupMap.remove(taskInfo.getId());
         taskExecutableGroup.getExecutors().forEach((chunkId, taskExecutable) -> {
+            downloadSpeedManager.removeChunk(chunkId);
             taskExecutable.pause();
         });
     }
@@ -174,6 +178,7 @@ public class DownLoadManagerImpl implements DownloadManager {
      * @param taskExecutable
      */
     private void startTask(final String groupId, final String taskId, final String chunkId, TaskExecutable taskExecutable) {
+        log.trace("start task, group id [{}], task id [{}], chunk id [{}]", groupId, taskId, chunkId);
         TaskExecutableGroup taskExecutableGroup;
         if (taskExecutableGroupMap.containsKey(taskId)) {
             taskExecutableGroup = taskExecutableGroupMap.get(taskId);
@@ -205,7 +210,6 @@ public class DownLoadManagerImpl implements DownloadManager {
                     taskGroup.getExecutors().remove(chunkId);
                     if (taskGroup.getExecutors().isEmpty()) {
                         taskExecutableGroupMap.remove(taskId);
-                        downloadSpeedManager.removeTask(taskId);
                     }
                 }
             }

@@ -33,7 +33,7 @@ public class DownloaderImpl implements Downloader {
         Map<String, String> headers = getPubHeader();
         headers.put("RANGE", "bytes=" + task.startOffset() + "-" + task.targetOffset());
         long startSize = task.startOffset() + task.finished();
-        log.info("startOffset:{};targetOffset:{};startSize:{}", task.startOffset(), task.targetOffset(), startSize);
+        log.trace("startOffset:{};targetOffset:{};startSize:{}", task.startOffset(), task.targetOffset(), startSize);
         download(task, callback, startSize, headers);
     }
 
@@ -67,7 +67,7 @@ public class DownloaderImpl implements Downloader {
             callback.downloadException(totalSize, downloadSize, e);
         } finally {
             System.out.println("finish:" + startSize + "-" + totalSize + ":" + downloadSize);
-
+            log.trace("task download finish , start size: {}, total size: {}, download size: {}", startSize, totalSize, downloadSize);
             if (task.finished() >= task.total()) {
                 task.updateStatus(TaskStatus.FINISHED);
             }

@@ -17,7 +17,7 @@
         </encoder>
     </appender>
 
-    <logger name="cr.downloader" level="INFO"/>
+    <logger name="cr.downloader" level="TRACE"/>
     <logger name="org.springframework" level="WARN"/>
 
     <root level="INFO">

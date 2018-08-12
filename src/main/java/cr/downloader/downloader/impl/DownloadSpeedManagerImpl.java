@@ -43,14 +43,6 @@ public class DownloadSpeedManagerImpl implements DownloadSpeedManager {
     }
 
     @Override
-    public void removeGroup(String groupId) {
-    }
-
-    @Override
-    public void removeTask(String taskId) {
-    }
-
-    @Override
     public void removeChunk(String chunkId) {
         this.chunkSpeeds.remove(chunkId);
     }

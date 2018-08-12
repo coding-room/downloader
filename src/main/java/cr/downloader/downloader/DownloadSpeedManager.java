@@ -18,22 +18,6 @@ public interface DownloadSpeedManager {
     void appendDataCount(String groupId, String taskId, String chunkId, long finished);
 
     /**
-     * 移除组
-     *
-     * @param groupId
-     */
-//    @Async
-    void removeGroup(String groupId);
-
-    /**
-     * 移除任务
-     *
-     * @param taskId
-     */
-//    @Async
-    void removeTask(String taskId);
-
-    /**
      * 移除chunk
      *
      * @param chunkId
