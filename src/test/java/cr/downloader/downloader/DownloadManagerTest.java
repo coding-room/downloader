@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 public class DownloadManagerTest {
 
     private final String url = "http://mirror.bit.edu.cn/apache/tomcat/tomcat-8/v8.5.32/bin/apache-tomcat-8.5.32.tar.gz";
+    private final String url2 = "http://mirrors.tuna.tsinghua.edu.cn/apache/tomcat/tomcat-8/v8.0.53/bin/apache-tomcat-8.0.53.tar.gz";
     //    private final String url = "https://download.jetbrains.8686c.com/idea/ideaIU-2018.2.dmg";
     private final String savePath = "./download";
 
@@ -48,7 +49,7 @@ public class DownloadManagerTest {
         GroupTask groupTask = new GroupTask();
         groupTask.setSavePath(savePath);
         groupTask.setChunkSize(30);
-        groupTask.setUrls(Arrays.asList(url));
+        groupTask.setUrls(Arrays.asList(url, url2));
 
 
         String groupId = downloadManager.createGroupTask(groupTask);
