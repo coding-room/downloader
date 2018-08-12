@@ -226,11 +226,12 @@ public class DownLoadManagerImpl implements DownloadManager {
         }
         File saveFile = new File(savePath, createDownFile(taskInfo.getFileName()));
         if (!saveFile.exists()) {
-            try (
-                    RandomAccessFile raf = new RandomAccessFile(saveFile, "rw")
-            ) {
-                raf.setLength(taskInfo.getFileLength());
-            }
+            saveFile.createNewFile();
+//            try (
+//                    RandomAccessFile raf = new RandomAccessFile(saveFile, "rw")
+//            ) {
+////                raf.setLength(taskInfo.getFileLength());
+//            }
         }
         return saveFile;
     }

@@ -17,10 +17,10 @@
         </encoder>
     </appender>
 
-    <logger name="cr.downloader" level="TRACE"/>
+    <logger name="cr.downloader" level="INFO"/>
     <logger name="org.springframework" level="WARN"/>
 
-    <root level="ERROR">
+    <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="ROLLING"/>
     </root>

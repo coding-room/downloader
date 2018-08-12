@@ -133,7 +133,7 @@ public class DownloadSpeedManagerImpl implements DownloadSpeedManager {
     }
 
 
-    @Scheduled(cron = "0/1 * * * * ?")
+//    @Scheduled(cron = "0/1 * * * * ?")
     private void speedSend() {
         final long now = System.currentTimeMillis();
         groupSpeeds.forEach((k, groupSpeed) -> speedSender.sendGroupSpeed(groupSpeed.getGroupId(),
