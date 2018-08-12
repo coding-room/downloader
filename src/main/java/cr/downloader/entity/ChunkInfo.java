@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 @Table(name = "t_chunk_info")
@@ -40,4 +41,6 @@ public class ChunkInfo {
      * 下载数量
      */
     private long finished;
+
+    private Date finishTime;
 }

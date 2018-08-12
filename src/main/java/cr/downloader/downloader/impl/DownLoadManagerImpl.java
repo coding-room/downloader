@@ -10,9 +10,14 @@ import cr.downloader.downloader.task.TaskStatus;
 import cr.downloader.entity.ChunkInfo;
 import cr.downloader.entity.TaskGroup;
 import cr.downloader.entity.TaskInfo;
+import cr.downloader.event.ChunkErrorEvent;
+import cr.downloader.event.ChunkFinishedEvent;
+import cr.downloader.event.GroupFinishEvent;
+import cr.downloader.event.TaskFinishedEvent;
 import cr.downloader.repo.ChunkInfoRepo;
 import cr.downloader.repo.TaskGroupRepo;
 import cr.downloader.repo.TaskInfoRepo;
+import cr.downloader.service.EventService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +37,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class DownLoadManagerImpl implements DownloadManager {
 
-    private final Map<String, TaskExecutableGroup> taskExecutableGroupMap = new ConcurrentHashMap<>(64);
+    private final Map<String, TaskExecutableWrapper> taskExecutableWrapperMap = new ConcurrentHashMap<>(64);
+    private final Map<String, TaskGroupWrapper> taskGroupWrapperMap = new ConcurrentHashMap<>(64);
 
     @Autowired
     private TaskGroupRepo taskGroupRepo;
@@ -47,6 +53,9 @@ public class DownLoadManagerImpl implements DownloadManager {
 
     @Autowired
     private DownloadSpeedManager downloadSpeedManager;
+
+    @Autowired
+    private EventService eventService;
 
     @Override
     public String createGroupTask(GroupTask task) throws IOException {
@@ -114,9 +123,12 @@ public class DownLoadManagerImpl implements DownloadManager {
             Collection<TaskInfo> tasks = taskGroup.getTasks();
             log.trace("start group [{}], task size {}", groupId, tasks.size());
             if (!CollectionUtils.isEmpty(tasks)) {
+                TaskGroupWrapper taskGroupWrapper = new TaskGroupWrapper(groupId);
                 for (TaskInfo task : tasks) {
                     startTask(task);
+                    taskGroupWrapper.executors.put(task.getId(), taskExecutableWrapperMap.get(task.getId()));
                 }
+                taskGroupWrapperMap.put(groupId, taskGroupWrapper);
             }
         }
     }
@@ -162,8 +174,8 @@ public class DownLoadManagerImpl implements DownloadManager {
 
 
     private void pauseTask(TaskInfo taskInfo) {
-        TaskExecutableGroup taskExecutableGroup = taskExecutableGroupMap.remove(taskInfo.getId());
-        taskExecutableGroup.getExecutors().forEach((chunkId, taskExecutable) -> {
+        TaskExecutableWrapper taskExecutableWrapper = taskExecutableWrapperMap.remove(taskInfo.getId());
+        taskExecutableWrapper.getExecutors().forEach((chunkId, taskExecutable) -> {
             downloadSpeedManager.removeChunk(chunkId);
             taskExecutable.pause();
         });
@@ -179,14 +191,14 @@ public class DownLoadManagerImpl implements DownloadManager {
      */
     private void startTask(final String groupId, final String taskId, final String chunkId, TaskExecutable taskExecutable) {
         log.trace("start task, group id [{}], task id [{}], chunk id [{}]", groupId, taskId, chunkId);
-        TaskExecutableGroup taskExecutableGroup;
-        if (taskExecutableGroupMap.containsKey(taskId)) {
-            taskExecutableGroup = taskExecutableGroupMap.get(taskId);
+        TaskExecutableWrapper taskExecutableWrapper;
+        if (taskExecutableWrapperMap.containsKey(taskId)) {
+            taskExecutableWrapper = taskExecutableWrapperMap.get(taskId);
         } else {
-            taskExecutableGroup = new TaskExecutableGroup(taskId);
-            taskExecutableGroupMap.put(taskId, taskExecutableGroup);
+            taskExecutableWrapper = new TaskExecutableWrapper(taskId);
+            taskExecutableWrapperMap.put(taskId, taskExecutableWrapper);
         }
-        taskExecutableGroup.getExecutors().put(chunkId, taskExecutable);
+        taskExecutableWrapper.getExecutors().put(chunkId, taskExecutable);
         taskExecutable.start(new DownloadCallback() {
             @Override
             public void downloadProcess(long total, long finished) {
@@ -195,21 +207,48 @@ public class DownLoadManagerImpl implements DownloadManager {
 
             @Override
             public void downloadFinished(long total, long downloadSize) {
+                ChunkFinishedEvent event = new ChunkFinishedEvent();
+                event.setGroupId(groupId);
+                event.setTaskId(taskId);
+                event.setChunkId(chunkId);
+                event.setTotal(total);
+                event.setDownloadSize(downloadSize);
+                event.setFinishTime(new Date());
+                eventService.pushEvent(event);
                 checkAndRemove();
             }
 
             @Override
             public void downloadException(long total, long downloadSize, Exception e) {
+                ChunkErrorEvent event = new ChunkErrorEvent();
+                event.setGroupId(groupId);
+                event.setTaskId(taskId);
+                event.setChunkId(chunkId);
+                event.setTotal(total);
+                event.setDownloadSize(downloadSize);
+                event.setException(e);
+                event.setErrorTime(new Date());
+                eventService.pushEvent(e);
                 checkAndRemove();
             }
 
             private void checkAndRemove() {
                 downloadSpeedManager.removeChunk(chunkId);
-                TaskExecutableGroup taskGroup = taskExecutableGroupMap.get(taskId);
+                TaskExecutableWrapper taskGroup = taskExecutableWrapperMap.get(taskId);
                 if (taskGroup != null) {
                     taskGroup.getExecutors().remove(chunkId);
                     if (taskGroup.getExecutors().isEmpty()) {
-                        taskExecutableGroupMap.remove(taskId);
+                        taskExecutableWrapperMap.remove(taskId);
+                        eventService.pushEvent(new TaskFinishedEvent(taskId, new Date()));
+
+                        TaskGroupWrapper taskGroupWrapper = taskGroupWrapperMap.get(groupId);
+                        if (taskGroupWrapper != null) {
+                            taskGroupWrapper.getExecutors().remove(taskId);
+                            if (taskGroupWrapper.getExecutors().isEmpty()) {
+                                taskGroupWrapperMap.remove(groupId);
+                                eventService.pushEvent(new GroupFinishEvent(groupId, new Date()));
+                            }
+                        }
                     }
                 }
             }
@@ -239,9 +278,16 @@ public class DownLoadManagerImpl implements DownloadManager {
 
 
     @Data
-    private static class TaskExecutableGroup {
+    private static class TaskExecutableWrapper {
         private final String taskId;
         private final Map<String, TaskExecutable> executors = new ConcurrentHashMap<>(64);
     }
+
+    @Data
+    private static class TaskGroupWrapper {
+        private final String groupId;
+        private final Map<String, TaskExecutableWrapper> executors = new ConcurrentHashMap<>(64);
+    }
+
 
 }

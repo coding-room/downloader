@@ -4,4 +4,5 @@ import cr.downloader.entity.TaskInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TaskInfoRepo extends JpaRepository<TaskInfo, String> {
+    int countAllByGroupIdAndStatus(String groupId, String status);
 }
